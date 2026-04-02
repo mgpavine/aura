@@ -146,9 +146,10 @@ function clickSecreto(){
     if(cliques>=5){
         let senha = prompt("Senha do professor:");
         if(senha===SENHA){
-            admin=true;
-            document.getElementById("painel").classList.add("ativo");
-            alert("Painel ativado ⚡");
+    admin=true;
+    document.getElementById("painel").classList.add("ativo");
+    location.reload(); // força atualizar e mostrar painel
+}
         }
     }
 }
