@@ -8,8 +8,9 @@
 
 <link rel="manifest" href="manifest.json">
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+<!-- 🔥 FIREBASE COMPATÍVEL -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
 body {
@@ -23,8 +24,7 @@ body {
     margin: 10px;
     padding: 15px;
     border-radius: 12px;
-    position: relative;
-    overflow: hidden;
+    background: #111;
     color: white;
 }
 
@@ -33,6 +33,7 @@ button {
     padding: 8px;
     border-radius: 6px;
     border: none;
+    cursor: pointer;
 }
 </style>
 </head>
@@ -54,6 +55,7 @@ button {
 let admin = false;
 const SENHA = "mgp377377377";
 
+// 🔥 CONFIG FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDK3oUfQusYOFBYfHF7O58dYt9yl4amqY8",
   authDomain: "aurometro-ceae0.firebaseapp.com",
@@ -71,6 +73,7 @@ const listaTurmas = [
 "3º A","3º B","3º C","3º SJ"
 ];
 
+// 🔥 CRIA DADOS SE NÃO EXISTIR
 ref.once("value", snap => {
     if (!snap.exists()) {
         let dados = listaTurmas.map(t => ({
@@ -81,6 +84,7 @@ ref.once("value", snap => {
     }
 });
 
+// LOGIN
 function login() {
     if (document.getElementById("senha").value === SENHA) {
         admin = true;
@@ -89,8 +93,9 @@ function login() {
     }
 }
 
+// ALTERAR PONTOS
 function alterar(i, v) {
-    if (!admin) return;
+    if (!admin) return alert("Somente professor");
 
     ref.once("value", snap => {
         let turmas = snap.val();
@@ -99,12 +104,19 @@ function alterar(i, v) {
     });
 }
 
+// RENDER INICIAL
 function renderLast() {
     ref.once("value", snap => render(snap.val()));
 }
 
-ref.on("value", snap => render(snap.val()));
+// ESCUTA EM TEMPO REAL
+ref.on("value", snap => {
+    if (snap.exists()) {
+        render(snap.val());
+    }
+});
 
+// RENDERIZA TELA
 function render(turmas) {
     const div = document.getElementById("turmas");
     const ranking = document.getElementById("ranking");
