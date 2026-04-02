@@ -122,20 +122,17 @@ const listaTurmas = [
 "3º A","3º B","3º C","3º SJ"
 ];
 
-// 🔥 CRIA OU CORRIGE BANCO
-ref.once("value", snap => {
-    let dados = snap.val();
 
-    if (!dados || Object.keys(dados).length !== 12) {
-        let novo = listaTurmas.map((t,i)=>({
-            nome:t,
-            aura:0,
-            cor:cores[i],
-            historico:[]
-        }));
-        ref.set(novo);
-    }
-});
+// 🔥 FORÇA CRIAR SEMPRE (CORREÇÃO DEFINITIVA)
+const novo = listaTurmas.map((t,i)=>({
+    nome:t,
+    aura:0,
+    cor:cores[i],
+    historico:[]
+}));
+
+ref.set(novo);
+
 
 // 🔐 LOGIN SECRETO
 function clickSecreto(){
@@ -149,6 +146,7 @@ function clickSecreto(){
         }
     }
 }
+
 
 // ➕ ALTERAR PONTOS
 function alterar(i,v){
@@ -170,6 +168,7 @@ function alterar(i,v){
     });
 }
 
+
 // 💥 EFEITO
 function explosao(i){
     let t=document.getElementsByClassName("turma")[i];
@@ -181,6 +180,7 @@ function explosao(i){
     t.appendChild(e);
     setTimeout(()=>e.remove(),600);
 }
+
 
 // 🔄 RENDER
 ref.on("value", snap=>{
