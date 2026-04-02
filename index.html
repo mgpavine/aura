@@ -122,15 +122,18 @@ const listaTurmas = [
 "3º A","3º B","3º C","3º SJ"
 ];
 
-// 🔥 GARANTE QUE TODAS AS TURMAS EXISTEM
+// 🔥 CRIA OU CORRIGE BANCO
 ref.once("value", snap => {
-    if (!snap.exists() || snap.val().length !== 12) {
-        ref.set(listaTurmas.map((t,i)=>({
+    let dados = snap.val();
+
+    if (!dados || Object.keys(dados).length !== 12) {
+        let novo = listaTurmas.map((t,i)=>({
             nome:t,
             aura:0,
             cor:cores[i],
             historico:[]
-        })));
+        }));
+        ref.set(novo);
     }
 });
 
@@ -150,9 +153,13 @@ function clickSecreto(){
 // ➕ ALTERAR PONTOS
 function alterar(i,v){
     ref.once("value", snap=>{
-        let turmas=snap.val();
+        let turmas = snap.val();
 
-        turmas[i].aura+=v;
+        if (!Array.isArray(turmas)) {
+            turmas = Object.values(turmas);
+        }
+
+        turmas[i].aura += v;
         turmas[i].historico.push({
             valor:v,
             hora:new Date().toLocaleTimeString()
@@ -177,8 +184,13 @@ function explosao(i){
 
 // 🔄 RENDER
 ref.on("value", snap=>{
-    let turmas=snap.val();
-    if(!turmas) return;
+    let turmas = snap.val();
+
+    if (!turmas) return;
+
+    if (!Array.isArray(turmas)) {
+        turmas = Object.values(turmas);
+    }
 
     let div=document.getElementById("turmas");
     let ranking=document.getElementById("ranking");
@@ -202,7 +214,6 @@ ref.on("value", snap=>{
             <p>${t.aura}</p>
         </div>`;
 
-        // painel professor
         if(admin){
             painel.innerHTML+=`
             <div>
