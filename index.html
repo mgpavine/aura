@@ -3,118 +3,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aura PRO Painel</title>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<style>
-body {
-    background: #050505;
-    color: #00ffff;
-    font-family: monospace;
-    text-align: center;
-}
-
-h1 {
-    text-shadow: 0 0 15px cyan;
-    cursor: pointer;
-}
-
-.turma {
-    margin: 10px;
-    padding: 15px;
-    border-radius: 12px;
-    background: #111;
-}
-
-.top1 { box-shadow: 0 0 25px gold; }
-.top2 { box-shadow: 0 0 20px silver; }
-.top3 { box-shadow: 0 0 15px #cd7f32; }
-
-.painel {
-    position: fixed;
-    top: 0;
-    right: -320px;
-    width: 320px;
-    height: 100%;
-    background: #111;
-    border-left: 2px solid cyan;
-    transition: 0.4s;
-    padding: 10px;
-    overflow-y: auto;
-}
-
-.painel.ativo {
-    right: 0;
-}
-
-button {
-    margin: 3px;
-    padding: 6px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-}
-
-.log {
-    font-size: 12px;
-    color: #888;
-}
-
-.explosao {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background: yellow;
-    border-radius: 50%;
-    animation: boom 0.6s forwards;
-}
-
-@keyframes boom {
-    100% { transform: scale(20); opacity: 0; }
-}
-</style>
+<title>TESTE</title>
 </head>
+<body style="background:black;color:white;text-align:center">
 
-<body>
-
-<h1 onclick="clickSecreto()">⚡ AURA DAS TURMAS ⚡</h1>
+<h1>TESTE TURMAS</h1>
 
 <div id="turmas"></div>
 
-<h2>🏆 Ranking</h2>
-<ol id="ranking"></ol>
-
-<h2>📜 Histórico</h2>
-<div id="log"></div>
-
-<div id="painel" class="painel"></div>
-
 <script>
-
-let admin = false;
-let cliques = 0;
-
-const SENHA = "mgp377377377";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDK3oUfQusYOFBYfHF7O58dYt9yl4amqY8",
-  authDomain: "aurometro-ceae0.firebaseapp.com",
-  databaseURL: "https://aurometro-ceae0-default-rtdb.firebaseio.com",
-  projectId: "aurometro-ceae0"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const ref = db.ref("turmas");
-
-const cores = [
-"#ff006e","#8338ec","#3a86ff","#06d6a0",
-"#ffbe0b","#fb5607","#ff006e","#00f5d4",
-"#9b5de5","#f15bb5","#00bbf9","#00f5d4"
-];
 
 const listaTurmas = [
 "1º A","1º B","1º C","1º SJ",
@@ -122,120 +19,10 @@ const listaTurmas = [
 "3º A","3º B","3º C","3º SJ"
 ];
 
+const div = document.getElementById("turmas");
 
-// 🔥 FORÇA CRIAR SEMPRE (CORREÇÃO DEFINITIVA)
-const novo = listaTurmas.map((t,i)=>({
-    nome:t,
-    aura:0,
-    cor:cores[i],
-    historico:[]
-}));
-
-ref.set(novo);
-
-
-// 🔐 LOGIN SECRETO
-function clickSecreto(){
-    cliques++;
-    if(cliques>=5){
-        let senha = prompt("Senha do professor:");
-        if(senha===SENHA){
-            admin=true;
-            document.getElementById("painel").classList.add("ativo");
-            alert("Painel ativado ⚡");
-        }
-    }
-}
-
-
-// ➕ ALTERAR PONTOS
-function alterar(i,v){
-    ref.once("value", snap=>{
-        let turmas = snap.val();
-
-        if (!Array.isArray(turmas)) {
-            turmas = Object.values(turmas);
-        }
-
-        turmas[i].aura += v;
-        turmas[i].historico.push({
-            valor:v,
-            hora:new Date().toLocaleTimeString()
-        });
-
-        ref.set(turmas);
-        explosao(i);
-    });
-}
-
-
-// 💥 EFEITO
-function explosao(i){
-    let t=document.getElementsByClassName("turma")[i];
-    if(!t) return;
-    let e=document.createElement("div");
-    e.className="explosao";
-    e.style.left="50%";
-    e.style.top="50%";
-    t.appendChild(e);
-    setTimeout(()=>e.remove(),600);
-}
-
-
-// 🔄 RENDER
-ref.on("value", snap=>{
-    let turmas = snap.val();
-
-    if (!turmas) return;
-
-    if (!Array.isArray(turmas)) {
-        turmas = Object.values(turmas);
-    }
-
-    let div=document.getElementById("turmas");
-    let ranking=document.getElementById("ranking");
-    let log=document.getElementById("log");
-    let painel=document.getElementById("painel");
-
-    div.innerHTML="";
-    ranking.innerHTML="";
-    log.innerHTML="";
-    painel.innerHTML="<h3>Painel Professor</h3>";
-
-    let ordem=[...turmas].sort((a,b)=>b.aura-a.aura);
-
-    turmas.forEach((t,i)=>{
-        let pos=ordem.findIndex(x=>x.nome===t.nome);
-        let classe=pos===0?"top1":pos===1?"top2":pos===2?"top3":"";
-
-        div.innerHTML+=`
-        <div class="turma ${classe}" style="background:${t.cor}">
-            <h3>${pos===0?"👑":""} ${t.nome}</h3>
-            <p>${t.aura}</p>
-        </div>`;
-
-        if(admin){
-            painel.innerHTML+=`
-            <div>
-                <b>${t.nome}</b><br>
-                <button onclick="alterar(${i},10)">+10</button>
-                <button onclick="alterar(${i},50)">+50</button>
-                <button onclick="alterar(${i},100)">+100</button>
-                <button onclick="alterar(${i},1000)">+1000</button><br>
-                <button onclick="alterar(${i},-10)">-10</button>
-                <button onclick="alterar(${i},-50)">-50</button>
-                <button onclick="alterar(${i},-100)">-100</button>
-            </div><hr>`;
-        }
-
-        t.historico.slice(-4).forEach(h=>{
-            log.innerHTML+=`<div class="log">${t.nome}: ${h.valor} (${h.hora})</div>`;
-        });
-    });
-
-    ordem.forEach(t=>{
-        ranking.innerHTML+=`<li>${t.nome} - ${t.aura}</li>`;
-    });
+listaTurmas.forEach(t=>{
+    div.innerHTML += `<p>${t}</p>`;
 });
 
 </script>
