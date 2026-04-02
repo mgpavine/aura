@@ -1,4 +1,4 @@
-```html id="z8f9dx"
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -22,25 +22,22 @@ h1 {
     cursor: pointer;
 }
 
-/* turmas */
 .turma {
     margin: 10px;
     padding: 15px;
     border-radius: 12px;
     background: #111;
-    position: relative;
 }
 
 .top1 { box-shadow: 0 0 25px gold; }
 .top2 { box-shadow: 0 0 20px silver; }
 .top3 { box-shadow: 0 0 15px #cd7f32; }
 
-/* painel professor */
 .painel {
     position: fixed;
     top: 0;
-    right: -300px;
-    width: 300px;
+    right: -320px;
+    width: 320px;
     height: 100%;
     background: #111;
     border-left: 2px solid cyan;
@@ -61,13 +58,11 @@ button {
     cursor: pointer;
 }
 
-/* histórico */
 .log {
     font-size: 12px;
     color: #888;
 }
 
-/* explosão */
 .explosao {
     position: absolute;
     width: 10px;
@@ -95,7 +90,6 @@ button {
 <h2>📜 Histórico</h2>
 <div id="log"></div>
 
-<!-- painel professor -->
 <div id="painel" class="painel"></div>
 
 <script>
@@ -128,9 +122,9 @@ const listaTurmas = [
 "3º A","3º B","3º C","3º SJ"
 ];
 
-// cria banco
+// 🔥 GARANTE QUE TODAS AS TURMAS EXISTEM
 ref.once("value", snap => {
-    if (!snap.exists()) {
+    if (!snap.exists() || snap.val().length !== 12) {
         ref.set(listaTurmas.map((t,i)=>({
             nome:t,
             aura:0,
@@ -140,21 +134,20 @@ ref.once("value", snap => {
     }
 });
 
-// login secreto
+// 🔐 LOGIN SECRETO
 function clickSecreto(){
     cliques++;
     if(cliques>=5){
         let senha = prompt("Senha do professor:");
         if(senha===SENHA){
-    admin=true;
-    document.getElementById("painel").classList.add("ativo");
-    location.reload(); // força atualizar e mostrar painel
-}
+            admin=true;
+            document.getElementById("painel").classList.add("ativo");
+            alert("Painel ativado ⚡");
         }
     }
 }
 
-// alterar pontos
+// ➕ ALTERAR PONTOS
 function alterar(i,v){
     ref.once("value", snap=>{
         let turmas=snap.val();
@@ -170,9 +163,10 @@ function alterar(i,v){
     });
 }
 
-// explosão
+// 💥 EFEITO
 function explosao(i){
     let t=document.getElementsByClassName("turma")[i];
+    if(!t) return;
     let e=document.createElement("div");
     e.className="explosao";
     e.style.left="50%";
@@ -181,9 +175,10 @@ function explosao(i){
     setTimeout(()=>e.remove(),600);
 }
 
-// render
+// 🔄 RENDER
 ref.on("value", snap=>{
     let turmas=snap.val();
+    if(!turmas) return;
 
     let div=document.getElementById("turmas");
     let ranking=document.getElementById("ranking");
@@ -203,11 +198,11 @@ ref.on("value", snap=>{
 
         div.innerHTML+=`
         <div class="turma ${classe}" style="background:${t.cor}">
-            <h3>${pos===0?"👑":""}${t.nome}</h3>
+            <h3>${pos===0?"👑":""} ${t.nome}</h3>
             <p>${t.aura}</p>
         </div>`;
 
-        // painel botões
+        // painel professor
         if(admin){
             painel.innerHTML+=`
             <div>
