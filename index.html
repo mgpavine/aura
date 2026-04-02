@@ -4,58 +4,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aura App</title>
+<title>Aura Pro</title>
 
-<link rel="manifest" href="manifest.json">
-
-<!-- 🔥 FIREBASE COMPATÍVEL -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
 body {
-    background: black;
+    background: #050505;
     color: #00ffff;
     font-family: monospace;
     text-align: center;
 }
 
-.turma {
-    margin: 10px;
-    padding: 15px;
-    border-radius: 12px;
-    background: #111;
-    color: white;
+/* título */
+h1 {
+    text-shadow: 0 0 15px cyan;
+    cursor: pointer;
 }
 
-button {
-    margin: 5px;
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
+/* turmas */
+.turma {
+    margin: 12px;
+    padding: 15px;
+    border-radius: 12px;
+    transition: 0.3s;
+    background: #111;
+}
+
+.turma:hover {
+    transform: scale(1.05);
+}
+
+/* ranking destaque */
+.top1 { box-shadow: 0 0 25px gold; }
+.top2 { box-shadow: 0 0 20px silver; }
+.top3 { box-shadow: 0 0 15px #cd7f32; }
+
+/* botão invisível */
+.adminHidden {
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+}
+
+/* explosão */
+.explosao {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: yellow;
+    border-radius: 50%;
+    animation: boom 0.6s forwards;
+}
+
+@keyframes boom {
+    100% { transform: scale(20); opacity: 0; }
+}
+
+/* histórico */
+.log {
+    font-size: 12px;
+    color: #888;
 }
 </style>
 </head>
 
 <body>
 
-<h1>⚡ AURA DAS TURMAS ⚡</h1>
-
-<input type="password" id="senha" placeholder="Senha">
-<button onclick="login()">Entrar</button>
+<h1 onclick="clickSecreto()">⚡ AURA DAS TURMAS ⚡</h1>
 
 <div id="turmas"></div>
 
 <h2>🏆 Ranking</h2>
 <ol id="ranking"></ol>
 
+<h2>📜 Últimas ações</h2>
+<div id="log"></div>
+
+<!-- botão invisível -->
+<div class="adminHidden" onclick="abrirLogin()"></div>
+
 <script>
 
 let admin = false;
+let cliques = 0;
+
 const SENHA = "mgp377377377";
 
-// 🔥 CONFIG FIREBASE
+const somGanho = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3");
+const somPerda = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-player-losing-or-failing-2042.mp3");
+
 const firebaseConfig = {
   apiKey: "AIzaSyDK3oUfQusYOFBYfHF7O58dYt9yl4amqY8",
   authDomain: "aurometro-ceae0.firebaseapp.com",
@@ -67,83 +109,115 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ref = db.ref("turmas");
 
+const cores = [
+"#ff006e","#8338ec","#3a86ff","#06d6a0",
+"#ffbe0b","#fb5607","#ff006e","#00f5d4",
+"#9b5de5","#f15bb5","#00bbf9","#00f5d4"
+];
+
 const listaTurmas = [
 "1º A","1º B","1º C","1º SJ",
 "2º A","2º B","2º C","2º SJ",
 "3º A","3º B","3º C","3º SJ"
 ];
 
-// 🔥 CRIA DADOS SE NÃO EXISTIR
+// cria banco
 ref.once("value", snap => {
     if (!snap.exists()) {
-        let dados = listaTurmas.map(t => ({
-            nome: t,
-            aura: 0
-        }));
-        ref.set(dados);
+        ref.set(listaTurmas.map((t,i)=>({
+            nome:t,
+            aura:0,
+            cor:cores[i],
+            historico:[]
+        })));
     }
 });
 
-// LOGIN
-function login() {
-    if (document.getElementById("senha").value === SENHA) {
+// login secreto
+function clickSecreto() {
+    cliques++;
+    if (cliques >= 5) abrirLogin();
+}
+
+function abrirLogin() {
+    let senha = prompt("Senha do professor:");
+    if (senha === SENHA) {
         admin = true;
-        renderLast();
-        alert("Modo professor ⚡");
+        alert("Modo professor ativado ⚡");
     }
 }
 
-// ALTERAR PONTOS
-function alterar(i, v) {
-    if (!admin) return alert("Somente professor");
+// alterar pontos
+function alterar(i,v) {
+    if (!admin) return;
 
     ref.once("value", snap => {
         let turmas = snap.val();
+
         turmas[i].aura += v;
+        turmas[i].historico.push({
+            valor:v,
+            hora:new Date().toLocaleTimeString()
+        });
+
         ref.set(turmas);
+
+        explosao(i);
+
+        v>0 ? somGanho.play() : somPerda.play();
     });
 }
 
-// RENDER INICIAL
-function renderLast() {
-    ref.once("value", snap => render(snap.val()));
+// explosão
+function explosao(i){
+    let t=document.getElementsByClassName("turma")[i];
+    let e=document.createElement("div");
+    e.className="explosao";
+    e.style.left="50%";
+    e.style.top="50%";
+    t.appendChild(e);
+    setTimeout(()=>e.remove(),600);
 }
 
-// ESCUTA EM TEMPO REAL
+// render
 ref.on("value", snap => {
-    if (snap.exists()) {
-        render(snap.val());
-    }
-});
+    let turmas = snap.val();
 
-// RENDERIZA TELA
-function render(turmas) {
-    const div = document.getElementById("turmas");
-    const ranking = document.getElementById("ranking");
+    let div = document.getElementById("turmas");
+    let ranking = document.getElementById("ranking");
+    let log = document.getElementById("log");
 
-    div.innerHTML = "";
-    ranking.innerHTML = "";
+    div.innerHTML="";
+    ranking.innerHTML="";
+    log.innerHTML="";
 
-    turmas.forEach((t,i) => {
-        div.innerHTML += `
-        <div class="turma">
-            <h3>${t.nome}</h3>
+    let ordem=[...turmas].sort((a,b)=>b.aura-a.aura);
+
+    turmas.forEach((t,i)=>{
+        let pos = ordem.findIndex(x=>x.nome===t.nome);
+
+        let classe = pos===0?"top1":pos===1?"top2":pos===2?"top3":"";
+
+        div.innerHTML+=`
+        <div class="turma ${classe}" style="background:${t.cor}">
+            <h3>${pos===0?"👑":""} ${t.nome}</h3>
             <p>${t.aura}</p>
 
-            ${admin ? `
-                <button onclick="alterar(${i},10)">+10</button>
-                <button onclick="alterar(${i},-10)">-10</button>
-            ` : ""}
-        </div>
-        `;
+            ${admin?`
+            <button onclick="alterar(${i},10)">+10</button>
+            <button onclick="alterar(${i},-10)">-10</button>
+            `:""}
+        </div>`;
+        
+        t.historico.slice(-4).forEach(h=>{
+            log.innerHTML+=`<div class="log">${t.nome}: ${h.valor} (${h.hora})</div>`;
+        });
     });
 
-    let ordenado = [...turmas].sort((a,b)=>b.aura-a.aura);
-
-    ordenado.forEach(t=>{
-        ranking.innerHTML += `<li>${t.nome} - ${t.aura}</li>`;
+    ordem.forEach(t=>{
+        ranking.innerHTML+=`<li>${t.nome} - ${t.aura}</li>`;
     });
-}
+});
 
 </script>
 
