@@ -1,0 +1,32 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>TESTE</title>
+</head>
+<body style="background:black;color:white;text-align:center">
+
+<h1>TESTE TURMAS</h1>
+
+<div id="turmas"></div>
+
+<script>
+
+const listaTurmas = [
+"1º A","1º B","1º C","1º SJ",
+"2º A","2º B","2º C","2º SJ",
+"3º A","3º B","3º C","3º SJ"
+];
+
+const div = document.getElementById("turmas");
+
+listaTurmas.forEach(t=>{
+    div.innerHTML += `<p>${t}</p>`;
+});
+
+</script>
+
+</body>
+</html>
+```
